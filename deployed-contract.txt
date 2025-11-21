@@ -1,0 +1,3 @@
+Contract Address: 0x2c03ca9fb5a7b5b26996c00f7c419c5e9c706196
+Deployed At: 2025-11-19T10:55:50.559970500
+Network: Local Ganache
