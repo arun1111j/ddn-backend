@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 
 import java.math.BigInteger;
@@ -27,7 +26,7 @@ public class InfuraWeb3Config {
     @Value("${web3j.gas-price:20000000000}")
     private String gasPrice;
 
-    @Value("${web3j.gas-limit:6721975}")
+    @Value("${web3j.gas-limit:6000000}")
     private String gasLimit;
 
     @Bean
@@ -90,7 +89,8 @@ public class InfuraWeb3Config {
 
     // Helper methods
     private String maskUrl(String url) {
-        if (url == null || url.isEmpty()) return "***";
+        if (url == null || url.isEmpty())
+            return "***";
         int lastSlash = url.lastIndexOf('/');
         if (lastSlash > 0 && lastSlash < url.length() - 1) {
             String projectId = url.substring(lastSlash + 1);
@@ -103,7 +103,8 @@ public class InfuraWeb3Config {
     }
 
     private String maskAddress(String address) {
-        if (address == null || address.length() < 10) return "***";
+        if (address == null || address.length() < 10)
+            return "***";
         return address.substring(0, 6) + "..." + address.substring(address.length() - 4);
     }
 

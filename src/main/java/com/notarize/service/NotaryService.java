@@ -34,16 +34,25 @@ public class NotaryService {
 
     public Notary registerNotary(NotaryRegistrationDTO registrationDTO) throws Exception {
         log.info("🎯 STARTING NOTARY REGISTRATION");
+
+        // Use server address if not provided
+        String notaryAddress = registrationDTO.getNotaryAddress();
+        if (notaryAddress == null || notaryAddress.trim().isEmpty()) {
+            notaryAddress = blockchainService.getCurrentAccountAddress();
+            log.info("⚠️ No address provided, using server wallet: {}", notaryAddress);
+            registrationDTO.setNotaryAddress(notaryAddress);
+        }
+
         log.info("📍 Notary: {} | Address: {}",
-                registrationDTO.getName(), registrationDTO.getNotaryAddress());
+                registrationDTO.getName(), notaryAddress);
 
         // Check database
-        if (notaryRepository.existsByNotaryAddress(registrationDTO.getNotaryAddress())) {
+        if (notaryRepository.existsByNotaryAddress(notaryAddress)) {
             throw new RuntimeException("Notary already registered in database");
         }
 
         // Check blockchain
-        if (blockchainService.isNotaryRegisteredOnBlockchain(registrationDTO.getNotaryAddress())) {
+        if (blockchainService.isNotaryRegisteredOnBlockchain(notaryAddress)) {
             throw new RuntimeException("Notary already registered on blockchain");
         }
 
@@ -54,16 +63,15 @@ public class NotaryService {
         try {
             // Register on blockchain
             TransactionReceipt receipt = blockchainService.registerNotary(
-                    registrationDTO.getNotaryAddress(),
+                    notaryAddress,
                     registrationDTO.getName(),
-                    stakeInWei
-            );
+                    stakeInWei);
 
             log.info("✅ Blockchain registration successful!");
 
             // Save to database
             Notary notary = new Notary();
-            notary.setNotaryAddress(registrationDTO.getNotaryAddress());
+            notary.setNotaryAddress(notaryAddress);
             notary.setName(registrationDTO.getName());
             notary.setActive(true);
             notary.setStakeAmount(new BigDecimal("1.0"));
@@ -197,6 +205,7 @@ public class NotaryService {
             return null;
         }
     }
+
     /**
      * Slash notary using document hash (looks up IPFS CID from database)
      */
@@ -251,7 +260,8 @@ public class NotaryService {
         // Convert additional stake to Wei
         BigInteger additionalStakeWei = Convert.toWei(additionalStake, Convert.Unit.ETHER).toBigInteger();
 
-        // Note: You would need to add an addStake method to your smart contract and BlockchainService
+        // Note: You would need to add an addStake method to your smart contract and
+        // BlockchainService
         // For now, just update local database
         BigDecimal newStakeAmount = notary.getStakeAmount().add(additionalStake);
         notary.setStakeAmount(newStakeAmount);
@@ -276,25 +286,60 @@ public class NotaryService {
         private int slashedCount;
         private double reputationScore;
 
-        public String getNotaryAddress() { return notaryAddress; }
-        public void setNotaryAddress(String notaryAddress) { this.notaryAddress = notaryAddress; }
+        public String getNotaryAddress() {
+            return notaryAddress;
+        }
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public void setNotaryAddress(String notaryAddress) {
+            this.notaryAddress = notaryAddress;
+        }
 
-        public boolean isActive() { return active; }
-        public void setActive(boolean active) { this.active = active; }
+        public String getName() {
+            return name;
+        }
 
-        public BigDecimal getStakeAmount() { return stakeAmount; }
-        public void setStakeAmount(BigDecimal stakeAmount) { this.stakeAmount = stakeAmount; }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-        public int getSuccessfulNotarizations() { return successfulNotarizations; }
-        public void setSuccessfulNotarizations(int successfulNotarizations) { this.successfulNotarizations = successfulNotarizations; }
+        public boolean isActive() {
+            return active;
+        }
 
-        public int getSlashedCount() { return slashedCount; }
-        public void setSlashedCount(int slashedCount) { this.slashedCount = slashedCount; }
+        public void setActive(boolean active) {
+            this.active = active;
+        }
 
-        public double getReputationScore() { return reputationScore; }
-        public void setReputationScore(double reputationScore) { this.reputationScore = reputationScore; }
+        public BigDecimal getStakeAmount() {
+            return stakeAmount;
+        }
+
+        public void setStakeAmount(BigDecimal stakeAmount) {
+            this.stakeAmount = stakeAmount;
+        }
+
+        public int getSuccessfulNotarizations() {
+            return successfulNotarizations;
+        }
+
+        public void setSuccessfulNotarizations(int successfulNotarizations) {
+            this.successfulNotarizations = successfulNotarizations;
+        }
+
+        public int getSlashedCount() {
+            return slashedCount;
+        }
+
+        public void setSlashedCount(int slashedCount) {
+            this.slashedCount = slashedCount;
+        }
+
+        public double getReputationScore() {
+            return reputationScore;
+        }
+
+        public void setReputationScore(double reputationScore) {
+            this.reputationScore = reputationScore;
+        }
     }
 }

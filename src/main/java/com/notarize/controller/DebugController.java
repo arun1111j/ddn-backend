@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -21,6 +22,7 @@ public class DebugController {
     private BlockchainService blockchainService;
     @Autowired
     private NotaryRepository notaryRepository;
+
     @GetMapping("/blockchain")
     public ResponseEntity<Map<String, Object>> getBlockchainInfo() {
         try {
@@ -67,8 +69,7 @@ public class DebugController {
         } catch (Exception e) {
             log.error("Error getting blockchain info", e);
             return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Failed to get blockchain info: " + e.getMessage()
-            ));
+                    "error", "Failed to get blockchain info: " + e.getMessage()));
         }
     }
 
@@ -96,10 +97,10 @@ public class DebugController {
         } catch (Exception e) {
             log.error("Error getting contract info", e);
             return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Failed to get contract info: " + e.getMessage()
-            ));
+                    "error", "Failed to get contract info: " + e.getMessage()));
         }
     }
+
     @GetMapping("/notary-status")
     public ResponseEntity<?> checkNotaryStatus(@RequestParam String address) {
         try {
@@ -122,6 +123,7 @@ public class DebugController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
     @GetMapping("/balance")
     public ResponseEntity<Map<String, Object>> getBalanceInfo() {
         try {
@@ -147,8 +149,7 @@ public class DebugController {
         } catch (Exception e) {
             log.error("Error getting balance info", e);
             return ResponseEntity.badRequest().body(Map.of(
-                    "error", "Failed to get balance info: " + e.getMessage()
-            ));
+                    "error", "Failed to get balance info: " + e.getMessage()));
         }
     }
 
@@ -238,11 +239,11 @@ public class DebugController {
 
             Map<String, Object> result = new HashMap<>();
 
-            // Try to register a test document
-            String txHash = blockchainService.registerDocument(ipfsCid, "Test Document", "0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1");
+            // Try to register a test document using correct 2-parameter method
+            TransactionReceipt receipt = blockchainService.registerDocument(ipfsCid, "Test Document");
 
             result.put("success", true);
-            result.put("transactionHash", txHash);
+            result.put("transactionHash", receipt.getTransactionHash());
             result.put("message", "Document registered successfully");
 
             return ResponseEntity.ok(result);
@@ -256,8 +257,8 @@ public class DebugController {
     private String convertWeiToEth(BigInteger wei) {
         try {
             // Simple conversion: 1 ETH = 10^18 WEI
-            java.math.BigDecimal weiDecimal = new java.math.BigDecimal(wei);
-            java.math.BigDecimal ethDecimal = weiDecimal.divide(new java.math.BigDecimal("1000000000000000000"));
+            BigDecimal weiDecimal = new BigDecimal(wei);
+            BigDecimal ethDecimal = weiDecimal.divide(new BigDecimal("1000000000000000000"));
             return ethDecimal.toString() + " ETH";
         } catch (Exception e) {
             return "Conversion failed";

@@ -57,7 +57,6 @@ contract DocumentNotarization {
         require(msg.value == STAKE_AMOUNT, "Incorrect stake amount");
         require(!notaries[msg.sender].isActive, "Already registered as notary");
         require(!usedNames[_name], "Name already taken");
-
         notaries[msg.sender] = NotaryInfo({
             notaryAddress: msg.sender,
             name: _name,
@@ -66,12 +65,10 @@ contract DocumentNotarization {
             successfulNotarizations: 0,
             slashedCount: 0
         });
-
         usedNames[_name] = true;
         emit NotaryRegistered(msg.sender, _name);
         emit StakeDeposited(msg.sender, msg.value);
     }
-
     // Register document with IPFS CID
     function registerDocument(string memory _ipfsCid, string memory _documentName) public {
         require(bytes(_ipfsCid).length > 0, "Invalid IPFS CID");
@@ -85,7 +82,6 @@ contract DocumentNotarization {
             isNotarized: false,
             notaries: new address[](0)
         });
-
         userDocuments[msg.sender].push(_ipfsCid);
         emit DocumentRegistered(_ipfsCid, msg.sender, _documentName);
     }
